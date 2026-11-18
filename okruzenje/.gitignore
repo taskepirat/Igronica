@@ -7,3 +7,8 @@ pyvenv.cfg
 data/
 #*.pt
 #*.pth
+# Python bytecode i keš
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
