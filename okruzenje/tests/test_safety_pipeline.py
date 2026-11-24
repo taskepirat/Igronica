@@ -189,3 +189,33 @@ def test_predict_single_all_machines_returns_four_entries(
         assert {"machine", "status", "detail"}.issubset(row.keys())
         assert isinstance(row["status"], str) and len(row["status"]) > 0
     assert not small_vit.training
+
+
+def test_m4_energy_uses_same_convention_as_calibration(cpu_device: torch.device):
+    # Without dropout all MC passes are identical, so the Machine 4 energy score must equal
+    # the score used for threshold calibration: E = -T * logsumexp(z / T) on the RAW logits
+    # (the temperature must not be applied twice).
+    model = VisionTransformer(
+        in_channels=1, patch_size=4, emb_dim=32, img_size=28,
+        num_classes=62, depth=2, num_heads=4, dropout=0.0,
+    ).to(cpu_device)
+    model.eval()
+
+    x = torch.randn(8, 1, 28, 28)
+    y = torch.zeros(8, dtype=torch.long)
+    loader = DataLoader(TensorDataset(x, y), batch_size=4, shuffle=False)
+    temperature = 1.3
+
+    _, _, _, _, m4_scores = run_mc_temp_ood_vit(
+        model,
+        loader,
+        cpu_device,
+        temperature=temperature,
+        ood_threshold=0.0,
+        n_passes=3,
+        unc_threshold=1.0,
+    )
+    with torch.no_grad():
+        expected = compute_energy_ood_score(model(x), temp=temperature).numpy()
+
+    np.testing.assert_allclose(m4_scores, expected, rtol=1e-4, atol=1e-4)

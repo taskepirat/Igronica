@@ -192,8 +192,8 @@ def run_mc_temp_ood_vit(
     with torch.no_grad():
         for images, labels in loader:
             images = images.to(device)
-            mc_logits = torch.stack([model(images) / temperature for _ in range(n_passes)], dim=0)
-            mc_probs = F.softmax(mc_logits, dim=-1)
+            mc_logits = torch.stack([model(images) for _ in range(n_passes)], dim=0)
+            mc_probs = F.softmax(mc_logits / temperature, dim=-1)
             mean_probs = mc_probs.mean(dim=0)
             _, preds = torch.max(mean_probs, dim=1)
 
@@ -409,8 +409,8 @@ def predict_single_all_machines(
 
     enable_mc_dropout(model)
     with torch.no_grad():
-        mc_l4 = torch.stack([model(tensor_img) / temperature for _ in range(n_passes)], dim=0)
-        mc_p4 = F.softmax(mc_l4, dim=-1)
+        mc_l4 = torch.stack([model(tensor_img) for _ in range(n_passes)], dim=0)
+        mc_p4 = F.softmax(mc_l4 / temperature, dim=-1)
         mean_p4 = mc_p4.mean(dim=0)[0]
         unc4 = float(mc_p4.std(dim=0).mean(dim=-1)[0].item())
         energy4 = float(compute_energy_ood_score(mc_l4.mean(dim=0), temp=temperature)[0].item())
