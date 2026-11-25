@@ -3,4 +3,8 @@ torchvision
 numpy
 pillow
 scipy
+pandas
+scikit-learn
+pytest
+# only used by the notebooks
 matplotlib

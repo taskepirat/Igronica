@@ -66,7 +66,7 @@ def build_loaders(seed: int = SEED) -> dict[str, DataLoader]:
     id_eval_loader = DataLoader(id_eval_dataset, batch_size=BATCH_SIZE, shuffle=False, pin_memory=True)
 
     kmnist_test = datasets.KMNIST(
-        root=str(DATA_DIR), train=False, download=False, transform=ood_transform
+        root=str(DATA_DIR), train=False, download=True, transform=ood_transform
     )
     fashion_test = datasets.FashionMNIST(
         root=str(DATA_DIR), train=False, download=True, transform=ood_transform
